@@ -9,14 +9,14 @@ import {User} from '../users/schema/user.schema';
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    configService: ConfigService,
+    private configService: ConfigService,
     @InjectModel(User.name) private userModel: Model<User>
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       secretOrKey: configService.get<string>('JWT_SECRET', 'secretKey'),
-    });
+    } as any);
   }
 
   async validate(payload: any) {
