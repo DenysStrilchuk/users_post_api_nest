@@ -1,10 +1,22 @@
-import {Controller, Post, Body, BadRequestException, Get, UseGuards, Req, Query} from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  BadRequestException,
+  Get,
+  UseGuards,
+  Req,
+  Query,
+  Delete,
+  Patch
+} from '@nestjs/common';
 import {UsersService} from './users.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import {JwtAuthGuard} from '../auth/guards/jwt-auth.guard';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
   @Get('me')
   @UseGuards(JwtAuthGuard)
   getProfile(@Req() req) {
@@ -29,5 +41,18 @@ export class UsersController {
   @Post('login')
   async login(@Body('email') email: string, @Body('password') password: string) {
     return this.usersService.login(email, password);
+  }
+
+  @Patch('me')
+  @UseGuards(JwtAuthGuard)
+  async updateUser(@Req() req, @Body() updateData: Partial<{ email: string; password: string }>) {
+    return this.usersService.updateUser(req.user.userId, updateData);
+  }
+
+
+  @Delete('me')
+  @UseGuards(JwtAuthGuard)
+  async deleteUser(@Req() req) {
+    return this.usersService.deleteUser(req.user.userId);
   }
 }

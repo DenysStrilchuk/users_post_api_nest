@@ -19,5 +19,6 @@ import {ConfigModule} from "@nestjs/config";
   ],
   controllers: [UsersController],
   providers: [UsersService, JwtStrategy],
+  exports: [MongooseModule],
 })
 export class UsersModule {}
