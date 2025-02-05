@@ -4,6 +4,7 @@ import {Model} from 'mongoose';
 import {User, UserDocument} from './schema/user.schema';
 import * as bcrypt from 'bcrypt';
 import {JwtService} from '@nestjs/jwt';
+import * as mongoose from 'mongoose';
 
 @Injectable()
 export class UsersService {
@@ -38,5 +39,19 @@ export class UsersService {
     const token = this.jwtService.sign(payload);
 
     return {access_token: token};
+  }
+
+  async findAll(search?: string) {
+    if (search) {
+      const isObjectId = mongoose.Types.ObjectId.isValid(search);
+
+      return this.userModel.find({
+        $or: [
+          { email: new RegExp(search, 'i') },
+          ...(isObjectId ? [{ _id: new mongoose.Types.ObjectId(search) }] : [])
+        ],
+      }).exec();
+    }
+    return this.userModel.find().exec();
   }
 }

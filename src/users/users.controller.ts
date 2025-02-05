@@ -1,4 +1,4 @@
-import {Controller, Post, Body, BadRequestException, Get, UseGuards, Req} from '@nestjs/common';
+import {Controller, Post, Body, BadRequestException, Get, UseGuards, Req, Query} from '@nestjs/common';
 import {UsersService} from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -9,6 +9,12 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   getProfile(@Req() req) {
     return req.user;
+  }
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  getAllUsers(@Query('search') search: string) {
+    return this.usersService.findAll(search);
   }
 
   @Post('register')
