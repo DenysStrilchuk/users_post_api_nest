@@ -13,6 +13,9 @@ export class User {
   @Prop({required: true})
   password: string;
 
+  @Prop({default: false})
+  isOnline: boolean;
+
   @Prop({default: 'user'})
   role: string;
 }
