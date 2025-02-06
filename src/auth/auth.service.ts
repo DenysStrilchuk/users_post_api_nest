@@ -4,12 +4,15 @@ import {Model} from 'mongoose';
 import {User, UserDocument} from '../users/schema/user.schema';
 import * as bcrypt from 'bcrypt';
 import {JwtService} from '@nestjs/jwt';
+import {RedisService} from '../redis/redis.service';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(User.name)
+    private userModel: Model<UserDocument>,
     private jwtService: JwtService,
+    private readonly redisService: RedisService,
   ) {}
 
   async register(email: string, password: string): Promise<{ message: string }> {
@@ -34,5 +37,13 @@ export class AuthService {
     }
     const payload = {sub: user._id, email: user.email};
     return {access_token: this.jwtService.sign(payload)};
+  }
+
+  async logout(token: string) {
+    await this.redisService.set(`blacklist:${token}`, 'blacklisted', 3600);
+  }
+  async isTokenBlacklisted(token: string): Promise<boolean> {
+    const isBlacklisted = await this.redisService.get(`blacklist:${token}`);
+    return isBlacklisted !== null;
   }
 }

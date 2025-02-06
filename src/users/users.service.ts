@@ -11,7 +11,7 @@ export class UsersService {
 
   async findAll(search?: string) {
     if (search) {
-      const isObjectId = /^[0-9a-fA-F]{24}$/.test(search); // Перевіряємо, чи це MongoDB ObjectId
+      const isObjectId = /^[0-9a-fA-F]{24}$/.test(search);
       if (isObjectId) {
         const userById = await this.userModel.findById(search).exec();
         return userById ? [userById] : [];

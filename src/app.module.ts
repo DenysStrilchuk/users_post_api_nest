@@ -1,16 +1,39 @@
-import {Module} from '@nestjs/common';
-import {ConfigModule} from '@nestjs/config';
-import {MongooseModule} from '@nestjs/mongoose';
-import * as process from "process";
-import {UsersModule} from './users/users.module';
-import {AuthModule} from "./auth/auth.module";
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { PassportModule } from '@nestjs/passport';
+import { JwtModule } from '@nestjs/jwt';
+import { JwtStrategy } from './auth/jwt.strategy';
+import { UsersModule } from './users/users.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import * as process from 'process';
+import { AuthController } from "./auth/auth.controller";
+import { AuthService } from './auth/auth.service';
+import { RedisModule } from "./redis/redis.module";
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    MongooseModule.forRoot(process.env.MONGO_URI || 'mongodb://admin:password@localhost:27017'),
+    PassportModule,
+    MongooseModule.forRoot(process.env.MONGO_URI ?? (() => {
+      throw new Error('MONGO_URI is not defined');
+    })()),
     UsersModule,
-    AuthModule,
+    RedisModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET ?? (() => {
+        throw new Error('JWT_SECRET is not defined');
+      })(),
+      signOptions: { expiresIn: '1h' },
+    }),
+  ],
+  controllers: [AuthController],
+  providers: [AuthService, JwtStrategy],
+  exports: [
+    AuthService,
+    JwtModule,
+    JwtStrategy,
+    PassportModule,
+    RedisModule,
   ],
 })
 export class AppModule {}
