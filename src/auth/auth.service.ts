@@ -5,7 +5,7 @@ import {User, UserDocument} from '../users/schema/user.schema';
 import * as bcrypt from 'bcrypt';
 import {JwtService} from '@nestjs/jwt';
 import {RedisService} from '../redis/redis.service';
-import * as validator from 'validator';
+import {RegisterDto} from "./dto/register.dto";
 
 
 @Injectable()
@@ -15,27 +15,20 @@ export class AuthService {
     private userModel: Model<UserDocument>,
     private jwtService: JwtService,
     private readonly redisService: RedisService,
-  ) {}
+  ) {
+  }
 
-  async register(email: string, password: string): Promise<{ message: string }> {
-    if (!validator.isEmail(email)) {
-      throw new BadRequestException('Invalid email format');
-    }
-    const existingUser = await this.userModel.findOne({ email }).exec();
+  async register(registerDto: RegisterDto): Promise<{ message: string }> {
+    const {email, password} = registerDto;
+    const existingUser = await this.userModel.findOne({email}).exec();
     if (existingUser) {
       throw new BadRequestException('A user with this email already exists');
     }
-    const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-    if (!passwordRegex.test(password)) {
-      throw new BadRequestException(
-        'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number'
-      );
-    }
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new this.userModel({ email, password: hashedPassword });
+    const newUser = new this.userModel({email, password: hashedPassword});
     await newUser.save();
 
-    return { message: 'User registered successfully' };
+    return {message: 'User registered successfully'};
   }
 
   async login(email: string, password: string): Promise<{ access_token: string }> {
@@ -47,7 +40,7 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid email or password');
     }
-    await this.userModel.updateOne({ _id: user._id }, { isOnline: true });
+    await this.userModel.updateOne({_id: user._id}, {isOnline: true});
     const payload = {sub: user._id, email: user.email};
     return {access_token: this.jwtService.sign(payload)};
   }
@@ -57,7 +50,7 @@ export class AuthService {
     if (!decoded) {
       throw new UnauthorizedException('Invalid token');
     }
-    await this.userModel.updateOne({ _id: decoded.sub }, { isOnline: false });
+    await this.userModel.updateOne({_id: decoded.sub}, {isOnline: false});
     await this.redisService.set(`blacklist:${token}`, 'blacklisted', 3600);
   }
 
