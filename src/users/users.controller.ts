@@ -8,19 +8,31 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {
   }
 
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  async getUsers(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10
+  ) {
+    return this.usersService.getUsers(page, limit);
+  }
+
   @Get('me')
   @UseGuards(JwtAuthGuard)
   getProfile(@Req() req) {
     return req.user;
   }
 
-  @Get()
+  @Get('search')
   @UseGuards(JwtAuthGuard)
-  async getAllUsers(@Query('search') search: string) {
-    if (!search) {
-      return this.usersService.findAll();
-    }
-    return this.usersService.findAll(search);
+  async searchUsers(@Query('query') query: string) {
+    return this.usersService.searchUsers(query);
+  }
+
+  @Get('filter')
+  @UseGuards(JwtAuthGuard)
+  async filterUsers(@Query() filters: Record<string, string>) {
+    return this.usersService.filterUsers(filters);
   }
 
   @Patch('me')
