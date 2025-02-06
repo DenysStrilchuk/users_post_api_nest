@@ -5,6 +5,8 @@ import {User, UserDocument} from '../users/schema/user.schema';
 import * as bcrypt from 'bcrypt';
 import {JwtService} from '@nestjs/jwt';
 import {RedisService} from '../redis/redis.service';
+import * as validator from 'validator';
+
 
 @Injectable()
 export class AuthService {
@@ -16,14 +18,24 @@ export class AuthService {
   ) {}
 
   async register(email: string, password: string): Promise<{ message: string }> {
-    const existingUser = await this.userModel.findOne({email}).exec();
+    if (!validator.isEmail(email)) {
+      throw new BadRequestException('Invalid email format');
+    }
+    const existingUser = await this.userModel.findOne({ email }).exec();
     if (existingUser) {
       throw new BadRequestException('A user with this email already exists');
     }
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      throw new BadRequestException(
+        'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number'
+      );
+    }
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new this.userModel({email, password: hashedPassword});
+    const newUser = new this.userModel({ email, password: hashedPassword });
     await newUser.save();
-    return {message: 'User registered successfully'};
+
+    return { message: 'User registered successfully' };
   }
 
   async login(email: string, password: string): Promise<{ access_token: string }> {
