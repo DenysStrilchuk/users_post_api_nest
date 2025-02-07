@@ -17,31 +17,37 @@ export class AuthController {
   }
 
   @Post('login')
-  async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto.email, loginDto.password);
+  async login(@Body() loginDto: LoginDto, @Res() res: Response) {
+    const result = await this.authService.login(loginDto.email, loginDto.password, res);
+    return res.status(200).json(result);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   async logout(@Req() req: Request, @Res() res: Response) {
     const accessToken = req.headers.authorization?.split(' ')[1];
-    const refreshToken = req.body.refresh_token; // Отримуємо refreshToken з body
+    const refreshToken = req.cookies.refresh_token;
 
     if (!accessToken || !refreshToken) {
       return res.status(401).json({ message: 'Tokens not provided' });
     }
 
     await this.authService.logout(accessToken, refreshToken);
+    res.clearCookie('refresh_token');
     res.json({ message: 'Successfully logged out' });
   }
 
   @Post('refresh')
-  async refresh(@Body('refresh_token') refreshToken: string, @Res() res: Response) {
+  async refresh(@Req() req: Request, @Res() res: Response) {
     try {
+      const refreshToken = req.cookies.refresh_token;
+      if (!refreshToken) {
+        return res.status(401).json({message: 'Refresh token is required'});
+      }
       const newTokens = await this.authService.refreshToken(refreshToken);
-      res.json(newTokens);
+      return res.json(newTokens);
     } catch (error) {
-      res.status(401).json({message: error.message});
+      return res.status(401).json({message: error.message});
     }
   }
 }

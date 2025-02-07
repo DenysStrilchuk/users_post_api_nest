@@ -3,6 +3,7 @@ import {InjectModel} from '@nestjs/mongoose';
 import {Model} from 'mongoose';
 import {User, UserDocument} from './schema/user.schema';
 import {UpdateUserDto} from "./dto/update-user.dto";
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -58,13 +59,21 @@ export class UsersService {
 
   async updateUser(userId: string, updateData: UpdateUserDto) {
     try {
+      // Якщо оновлюється пароль, хешуємо його перед оновленням
+      if (updateData.password) {
+        const saltRounds = 10;
+        updateData.password = await bcrypt.hash(updateData.password, saltRounds);
+      }
+
       const updatedUser = await this.userModel.findByIdAndUpdate(userId, updateData, {
         new: true,
         runValidators: true,
       });
+
       if (!updatedUser) {
         new NotFoundException('User not found');
       }
+
       return updatedUser;
     } catch (error) {
       if (error.code === 11000) {

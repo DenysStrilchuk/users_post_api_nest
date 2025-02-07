@@ -1,6 +1,7 @@
 import {Injectable} from '@nestjs/common';
 import {JwtService} from '@nestjs/jwt';
 import * as process from 'process';
+import {IJwtPayload} from "../interfaces/jwt-payload.interface";
 
 @Injectable()
 export class TokenService {
@@ -21,11 +22,11 @@ export class TokenService {
     );
   }
 
-  verifyAccessToken(token: string): any {
-    return this.jwtService.verify(token, {secret: process.env.JWT_SECRET});
+  verifyAccessToken(token: string): IJwtPayload {
+    return this.jwtService.verify<IJwtPayload>(token, {secret: process.env.JWT_SECRET});
   }
 
-  verifyRefreshToken(token: string): any {
-    return this.jwtService.verify(token, {secret: process.env.JWT_REFRESH_SECRET});
+  verifyRefreshToken(token: string): IJwtPayload {
+    return this.jwtService.verify<IJwtPayload>(token, {secret: process.env.JWT_REFRESH_SECRET});
   }
 }

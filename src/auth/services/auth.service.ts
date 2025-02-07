@@ -7,6 +7,7 @@ import {JwtService} from '@nestjs/jwt';
 import {RedisService} from '../../redis/redis.service';
 import {RegisterDto} from "../dto/register.dto";
 import {TokenService} from "./token.service";
+import {Response} from 'express'
 
 
 @Injectable()
@@ -33,15 +34,26 @@ export class AuthService {
     return {message: 'User registered successfully'};
   }
 
-  async login(email: string, password: string): Promise<{ access_token: string; refresh_token: string }> {
+  async login(email: string, password: string, res: Response): Promise<{ access_token: string;}> {
     const user = await this.userModel.findOne({email}).exec();
     if (!user) throw new UnauthorizedException('Invalid email or password');
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) throw new UnauthorizedException('Invalid email or password');
+
     const accessToken = this.tokenService.generateAccessToken(user._id, user.email);
     const refreshToken = this.tokenService.generateRefreshToken(user._id);
 
-    return {access_token: accessToken, refresh_token: refreshToken};
+    await this.userModel.updateOne({ _id: user._id }, { isOnline: true });
+
+    res.cookie('refresh_token', refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return { access_token: accessToken };
   }
 
   async logout(accessToken: string, refreshToken: string) {
@@ -62,13 +74,16 @@ export class AuthService {
   }
 
   async refreshToken(refreshToken: string): Promise<{ access_token: string }> {
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token is required');
+    }
     const isBlacklisted = await this.redisService.get(`blacklist:refresh:${refreshToken}`);
     if (isBlacklisted) {
       throw new UnauthorizedException('Refresh token is blacklisted');
     }
     const decoded = this.tokenService.verifyRefreshToken(refreshToken);
     if (!decoded) throw new UnauthorizedException('Invalid refresh token');
-    const newAccessToken = this.tokenService.generateAccessToken(decoded.sub, decoded.email);
+    const newAccessToken = this.tokenService.generateAccessToken(decoded.sub, decoded.email ?? '');
     return {access_token: newAccessToken};
   }
 }
