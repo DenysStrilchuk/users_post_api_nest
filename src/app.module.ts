@@ -7,8 +7,9 @@ import { UsersModule } from './users/users.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import * as process from 'process';
 import { AuthController } from "./auth/auth.controller";
-import { AuthService } from './auth/auth.service';
+import { AuthService } from './auth/services/auth.service';
 import { RedisModule } from "./redis/redis.module";
+import {AuthModule} from "./auth/auth.module";
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { RedisModule } from "./redis/redis.module";
       throw new Error('MONGO_URI is not defined');
     })()),
     UsersModule,
+    AuthModule,
     RedisModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET ?? (() => {

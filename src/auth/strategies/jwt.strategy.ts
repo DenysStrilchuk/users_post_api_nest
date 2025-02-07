@@ -5,7 +5,7 @@ import {ConfigService} from '@nestjs/config';
 import {InjectModel} from '@nestjs/mongoose';
 import {Model} from 'mongoose';
 import {User} from '../../users/schema/user.schema';
-import {AuthService} from '../auth.service';
+import {AuthService} from '../services/auth.service';
 import {Request} from 'express';
 
 @Injectable()

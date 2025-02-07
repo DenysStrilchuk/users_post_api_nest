@@ -4,26 +4,24 @@ import {PassportModule} from '@nestjs/passport';
 import {JwtModule} from '@nestjs/jwt';
 import {JwtStrategy} from './strategies/jwt.strategy';
 import {UsersModule} from '../users/users.module';
-import * as process from 'process';
 import {AuthController} from "./auth.controller";
-import {AuthService} from './auth.service';
+import {AuthService} from './services/auth.service';
+import {TokenService} from "./services/token.service";
+import {RedisModule} from "../redis/redis.module";
 
 @Module({
   imports: [
+    RedisModule,
     ConfigModule,
     PassportModule,
     UsersModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET ?? (() => {
-        throw new Error('JWT_SECRET is not defined');
-      })(),
-      signOptions: {expiresIn: '1h'},
-    }),
+    JwtModule.register({}),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, TokenService, JwtStrategy],
   exports: [
     AuthService,
+    TokenService,
     JwtModule,
     JwtStrategy,
     PassportModule,
