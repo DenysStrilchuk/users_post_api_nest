@@ -1,4 +1,4 @@
-import {ConflictException, Injectable, NotFoundException} from '@nestjs/common';
+import {BadRequestException, ConflictException, Injectable, NotFoundException} from '@nestjs/common';
 import {InjectModel} from '@nestjs/mongoose';
 import {Model} from 'mongoose';
 import {User, UserDocument} from './schema/user.schema';
@@ -14,6 +14,7 @@ export class UsersService {
     const skip = (page - 1) * limit;
     const users = await this.userModel
       .find()
+      .select('-password')
       .skip(skip)
       .limit(limit)
       .exec();
@@ -26,40 +27,63 @@ export class UsersService {
     };
   }
 
-  async searchUsers(query: string) {
-    if (!query) return [];
-
-    const isObjectId = /^[0-9a-fA-F]{24}$/.test(query);
-
-    if (isObjectId) {
-      const userById = await this.userModel.findById(query).exec();
-      return userById ? [userById] : [];
+  async searchUsersByEmail(email: string) {
+    if (!email) {
+      throw new BadRequestException('The request cannot be empty');
     }
 
-    return this.userModel.find({email: new RegExp(query, 'i')}).exec();
+    const users = await this.userModel
+      .find({ email: new RegExp(email, 'i') })
+      .select('-password')
+      .exec();
+
+    if (!users.length) {
+      throw new NotFoundException('No user found');
+    }
+
+    return users;
   }
+
 
   async filterUsers(filters: Record<string, string>) {
     const query: any = {};
-
     Object.keys(filters).forEach((key) => {
       const value = filters[key];
-
+      if (!value) return;
       if (key === 'isOnline') {
         query[key] = value === 'true';
       } else if (['createdAt', 'updatedAt'].includes(key)) {
-        query[key] = {$gte: new Date(value)};
+        const dates = value.split(',');
+        if (dates.length === 2) {
+          query[key] = { $gte: new Date(dates[0]), $lte: new Date(dates[1]) };
+        } else {
+          query[key] = { $gte: new Date(value) };
+        }
+      } else if (['email', 'name'].includes(key)) {
+        query[key] = { $regex: value, $options: 'i' };
       } else {
         query[key] = value;
       }
     });
+    const users = await this.userModel.find(query).select('-password').exec();
+    if (users.length === 0) {
+      throw new NotFoundException('Користувачів за даними фільтрами не знайдено');
+    }
 
-    return this.userModel.find(query).exec();
+    return users;
+  }
+
+
+  async getUserById(id: string) {
+    const user = await this.userModel.findById(id).select('-password').exec();
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
   }
 
   async updateUser(userId: string, updateData: UpdateUserDto) {
     try {
-      // Якщо оновлюється пароль, хешуємо його перед оновленням
       if (updateData.password) {
         const saltRounds = 10;
         updateData.password = await bcrypt.hash(updateData.password, saltRounds);
