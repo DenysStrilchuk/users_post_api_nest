@@ -10,6 +10,7 @@ import { AuthController } from "./auth/auth.controller";
 import { AuthService } from './auth/services/auth.service';
 import { RedisModule } from "./redis/redis.module";
 import {AuthModule} from "./auth/auth.module";
+import {PostsModule} from "./posts/posts.module";
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import {AuthModule} from "./auth/auth.module";
     UsersModule,
     AuthModule,
     RedisModule,
+    PostsModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET ?? (() => {
         throw new Error('JWT_SECRET is not defined');
