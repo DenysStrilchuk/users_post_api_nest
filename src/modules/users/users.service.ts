@@ -73,7 +73,6 @@ export class UsersService {
     return users;
   }
 
-
   async getUserById(id: string) {
     const user = await this.userModel.findById(id).select('-password').exec();
     if (!user) {
