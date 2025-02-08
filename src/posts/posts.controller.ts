@@ -13,20 +13,20 @@ export class PostsController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post()
+  @Post('me')
   createPost(@Req() req, @Body('text') text: string) {
     return this.postsService.createPost(req.user.userId, text);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch(':postId')
-  updatePost(@Param('postId') postId: string, @Req() req, @Body('text') text: string) {
+  @Patch('me/:postId')
+  updatePost(@Req() req, @Param('postId') postId: string, @Body('text') text: string) {
     return this.postsService.updatePost(postId, req.user.userId, text);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete(':postId')
-  deletePost(@Param('postId') postId: string, @Req() req) {
+  @Delete('me/:postId')
+  deletePost(@Req() req, @Param('postId') postId: string) {
     return this.postsService.deletePost(postId, req.user.userId);
   }
 }

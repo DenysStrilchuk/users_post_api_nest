@@ -9,36 +9,34 @@ export class PostsService {
   }
 
   async getUserPosts(userId: string) {
-    return this.postModel.find({userId});
+    const posts = await this.postModel.find({userId});
+    return {message: 'User posts retrieved successfully', posts};
   }
 
   async createPost(userId: string, text: string) {
-    if (!text.trim()) throw new ForbiddenException('Пост не може бути порожнім');
-    return this.postModel.create({userId, text});
+    if (!text.trim()) throw new ForbiddenException('The post cannot be empty');
+    const post = await this.postModel.create({userId, text});
+    return {message: 'Post created successfully', post};
   }
 
   async updatePost(postId: string, userId: string, newText: string) {
     const post = await this.postModel.findById(postId).exec();
-
-    if (!post) throw new NotFoundException('Пост не знайдено');
-
-    if (post.userId !== userId) {
-      throw new ForbiddenException('Ви можете редагувати лише свої пости');
+    if (!post) throw new NotFoundException('Post not found');
+    if (post.userId.toString() !== userId.toString()) {
+      throw new ForbiddenException('You can only edit your own posts');
     }
-
     post.text = newText;
-    return post.save();
+    await post.save();
+    return {message: 'Post updated successfully', post};
   }
 
   async deletePost(postId: string, userId: string) {
     const post = await this.postModel.findById(postId).exec();
-
-    if (!post) throw new NotFoundException('Пост не знайдено');
-
-    if (post.userId !== userId) {
-      throw new ForbiddenException('Ви можете видаляти лише свої пости');
+    if (!post) throw new NotFoundException('Post not found');
+    if (post.userId.toString() !== userId.toString()) {
+      throw new ForbiddenException('You can only delete your posts');
     }
-
-    return this.postModel.findByIdAndDelete(postId);
+    await this.postModel.findByIdAndDelete(postId);
+    return {message: 'Post deleted successfully', postId};
   }
 }
