@@ -20,5 +20,21 @@ services:
     ports:
       - "6379:6379"
 
+  app:
+    build: .
+    container_name: nest-app
+    ports:
+      - "3000:3000"
+    environment:
+      MONGO_URI: mongodb://admin:password@mongo:27017
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      - mongo
+      - redis
+    volumes:
+      - .:/app
+    command: npm run start:dev
+
 volumes:
   mongo_data:
