@@ -115,14 +115,14 @@ curl -X GET http://localhost:3000/posts/{userId}
 curl -X POST http://localhost:3000/posts/me \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"text": "Це мій новий пост!"}'
+  -d '{"text": "This is my new post!"}'
 ```
 #### Update Your Post: 
 ```bash
 curl -X PATCH http://localhost:3000/posts/me/{postId} \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"text": "Оновлений текст поста"}'
+  -d '{"text": "Updated post text"}'
 ```
 #### Delete Your Post:
 ```bash
