@@ -23,112 +23,112 @@
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
 # Users Post API (NestJS)
-## Опис
-Цей проект є API на основі NestJS, яке використовує MongoDB для зберігання даних користувачів, Redis для кешування, а також підтримує аутентифікацію за допомогою JWT.
-## Основні модулі:
-* AuthModule – модуль для автентифікації (JWT, Passport, Refresh токени)
-* UsersModule – управління користувачами (CRUD, пошук, фільтрація)
-* PostsModule – управління постами (CRUD) 
-* RedisModule – кешування даних та чорний список токенів
-## Конфігураційні модулі:
-* DatabaseModule – підключення до MongoDB
-* JwtConfigModule – налаштування JWT
-## Запуск проекту
-### 1. Клонування репозиторію
+## Description
+This project is an API based on NestJS, which uses MongoDB for data storage, Redis for caching, and supports authentication using JWT.
+## Main Modules:
+* AuthModule – authentication module (JWT, Passport, Refresh tokens)
+* UsersModule – user management (CRUD, search, filtering)
+* PostsModule – post management (CRUD) 
+* RedisModule – data caching and blacklist for tokens
+## Configuration Modules:
+* DatabaseModule – MongoDB connection
+* JwtConfigModule – JWT configuration
+## Project Setup:
+### 1. Clone the repository:
 ```bash
 git clone https://github.com/your-username/users_post_api_nest.git
 cd users_post_api_nest
 ```
-### 2. Налаштування середовища
-Проєкт використовує файл local.env, який вже налаштований для роботи. Якщо потрібно змінити середовище, онови змінну APP_ENVIRONMENT у local.env.
-### 3. Запуск через Docker
+### 2. Set up environment variables:
+The project uses the local.env file, which is already configured to work. If you need to change the environment, update the APP_ENVIRONMENT variable in local.env.
+### 3. Run with Docker:
 ```bash
 docker compose up --build
 ```
-### 4. Альтернативний запуск без Docker
+### 4. Alternative setup without Docker:
 ```bash
 npm install
 npm run start:dev
 ```
-## 5. API Ендпоінти
-### 5.1. Аутентифікація (/auth)
-#### Реєстрація користувача
+## 5. API Endpoints:
+### 5.1. Authentication (/auth)
+#### User Registration:
 ```bash
 curl -X POST http://localhost:3000/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email": "testuser@example.com", "password": "sEcurepassword123"}'
 ```
-#### Авторизація та отримання токена
+#### Login and Get Token:
 ```bash
 curl -X POST http://localhost:3000/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email": "testuser@example.com", "password": "sEcurepassword123"}'
 ```
-#### Вихід з системи
+#### Logout:
 ```bash
 curl -X POST http://localhost:3000/auth/logout \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   --cookie "refresh_token=your_refresh_token"
 ```
-Це видалить токени та додасть їх у чорний список у Redis.
-### 5.2. Користувачі (/users)
-#### Отримати список користувачів (з пагінацією)
+This will invalidate the tokens and add them to the blacklist in Redis.
+### 5.2. Users (/users)
+#### Get List of Users (with pagination):
 ```bash
 curl -X GET "http://localhost:3000/users?page=1&limit=10" -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
-#### Отримати профіль авторизованого користувача
+#### Get Profile of the Authorized User:
 ```bash
 curl -X GET http://localhost:3000/users/me -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
-#### Пошук користувачів за email
+#### Search Users by Email:
 ```bash
 curl -X GET "http://localhost:3000/users/search?query=test@example.com" -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
-#### Фільтрація користувачів за параметрами
+#### Filter Users by Parameters:
 ```bash
 curl -X GET "http://localhost:3000/users/filter?role=user&isOnline=true&age=25&gender=male" -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
-Цей запит поверне всіх користувачів, які мають роль user, знаходяться онлайн, мають вік 25 і стать male.
-#### Отримати користувача за ID
+This query will return all users with the role user, online status, age 25, and gender male.
+#### Get User by ID:
 ```bash
 curl -X GET "http://localhost:3000/users/{id}" -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
-#### Оновити дані користувача
+#### Update User Data:
 ```bash
 curl -X PATCH http://localhost:3000/users/me \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"name": "John Doe", "age": 30, "gender": "male", "isOnline": true, "role": "admin"}'
 ```
-Цей запит оновить ім'я, вік, стать, статус онлайну та роль користувача. Також можна  оновлювати емейл та  пароль.
-#### Видалити свій акаунт 
+This request will update the name, age, gender, online status, and role of the user. You can also update the email and password.
+#### Delete Your Account: 
 ```bash
 curl -X DELETE http://localhost:3000/users/me -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
-### 5.3. Пости (/posts)
-#### Отримати всі пости користувача 
+### 5.3. Posts (/posts)
+#### Get All Posts of a User: 
 ```bash
 curl -X GET http://localhost:3000/posts/{userId}
 ```
-#### Створити новий пост 
+#### Create a New Post: 
 ```bash
 curl -X POST http://localhost:3000/posts/me \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"text": "Це мій новий пост!"}'
 ```
-#### Оновити свій пост  
+#### Update Your Post: 
 ```bash
 curl -X PATCH http://localhost:3000/posts/me/{postId} \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"text": "Оновлений текст поста"}'
 ```
-#### Видалити свій пост
+#### Delete Your Post:
 ```bash
 curl -X DELETE http://localhost:3000/posts/me/{postId} -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
-## 6. Ліцензія
+## 6. License
 
-####  Цей проект є приватним і не має публічної ліцензії.
+####  This project is private and does not have a public license.
