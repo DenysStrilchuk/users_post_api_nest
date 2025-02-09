@@ -43,7 +43,7 @@ cd users_post_api_nest
 Проєкт використовує файл local.env, який вже налаштований для роботи. Якщо потрібно змінити середовище, онови змінну APP_ENVIRONMENT у local.env.
 ### 3. Запуск через Docker
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 ### 4. Альтернативний запуск без Docker
 ```bash
