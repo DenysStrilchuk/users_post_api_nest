@@ -22,19 +22,24 @@ export class AuthService {
   }
 
   async register(registerDto: RegisterDto): Promise<{ message: string }> {
-    const {email, password} = registerDto;
+    const {email, password, name, age, gender} = registerDto;
     const existingUser = await this.userModel.findOne({email}).exec();
     if (existingUser) {
       throw new BadRequestException('A user with this email already exists');
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new this.userModel({email, password: hashedPassword});
+    const newUser = new this.userModel({
+      email,
+      password: hashedPassword,
+      name,
+      age,
+      gender,
+    });
     await newUser.save();
-
     return {message: 'User registered successfully'};
   }
 
-  async login(email: string, password: string, res: Response): Promise<{ access_token: string;}> {
+  async login(email: string, password: string, res: Response): Promise<{ access_token: string; }> {
     const user = await this.userModel.findOne({email}).exec();
     if (!user) throw new UnauthorizedException('Invalid email or password');
 
@@ -44,7 +49,7 @@ export class AuthService {
     const accessToken = this.tokenService.generateAccessToken(user._id, user.email);
     const refreshToken = this.tokenService.generateRefreshToken(user._id);
 
-    await this.userModel.updateOne({ _id: user._id }, { isOnline: true });
+    await this.userModel.updateOne({_id: user._id}, {isOnline: true});
 
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
@@ -53,7 +58,7 @@ export class AuthService {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    return { access_token: accessToken };
+    return {access_token: accessToken};
   }
 
   async logout(accessToken: string, refreshToken: string) {

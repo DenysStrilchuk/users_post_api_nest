@@ -7,11 +7,20 @@ export type UserDocument = User & Document;
 export class User {
   _id?: string;
 
-  @Prop({required: true, unique: true})
+  @Prop({ required: true, unique: true })
   email: string;
 
-  @Prop({required: true})
+  @Prop({ required: true })
   password: string;
+
+  @Prop()
+  name?: string;
+
+  @Prop()
+  age?: number;
+
+  @Prop()
+  gender?: string;
 
   @Prop({default: false})
   isOnline: boolean;
