@@ -56,13 +56,13 @@ npm run start:dev
 ```bash
 curl -X POST http://localhost:3000/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"email": "testuser@example.com", "password": "securepassword"}'
+  -d '{"email": "testuser@example.com", "password": "sEcurepassword123"}'
 ```
 #### Авторизація та отримання токена
 ```bash
 curl -X POST http://localhost:3000/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "testuser@example.com", "password": "securepassword"}'
+  -d '{"email": "testuser@example.com", "password": "sEcurepassword123"}'
 ```
 #### Вихід з системи
 ```bash
